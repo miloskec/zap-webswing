@@ -1,2 +1,2 @@
-# ZAP Docker image
-Image with pre-added Postman collection / OpenAPI resource
+# ZAP Docker compose
+Stable ZAP image with pre-added Postman collection / OpenAPI resource
