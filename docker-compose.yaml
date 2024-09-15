@@ -1,0 +1,16 @@
+services:
+  zap:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    container_name: zap
+    privileged: true
+    ports:
+      - "8080:8080"   # WebSwing Interface
+      - "8090:8090"   # ZAP Proxy and API
+    volumes:
+      - ./zap:/zap/wrk/:rw   # Mount local directory to persist SSL certificates
+      - ./microservices-openapi300.yaml:/zap/wrk/microservices-openapi300.yaml  # Bind-mount OpenAPI file
+      - ./MicroServices.postman_collection.json:/zap/wrk/MicroServices.postman_collection.json  # Bind-mount OpenAPI file
+    network_mode: host
+    environment:
+      - ZAP_WEBSWING_OPTS=-host 0.0.0.0 -port 8090
+    command: zap-webswing.sh

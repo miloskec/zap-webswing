@@ -1,0 +1,789 @@
+openapi: 3.0.0
+info:
+  title: MicroServices
+  version: 1.0.0
+servers:
+  - url: http://{{baseurl}}
+tags:
+  - name: Login
+  - name: Login > Injection
+  - name: Logout
+  - name: Verify Token
+  - name: Refresh Token
+  - name: Profile
+  - name: Register
+  - name: Password
+  - name: gateway-proxy-to-services
+paths:
+  /api/login:
+    post:
+      tags:
+        - Login
+      summary: login user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                email: example_user@example.com
+                password: 12345678erA!
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        undefined:
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-0:
+                  summary: Error - Authentication API down
+                  value:
+                    status: 500
+                    source: Authentication API
+                    message: >-
+                      cURL error 6: Could not resolve host: authentication (see
+                      https://curl.haxx.se/libcurl/c/libcurl-errors.html) for
+                      http://authentication/api/login
+                    error:
+                      type: GuzzleHttp\Exception\ConnectException
+                      details:
+                        connection: 'Could not resolve host: authentication'
+                example-1:
+                  summary: Error - Wrong credentials
+                  value:
+                    status: 401
+                    source: Authentication API
+                    message: Unauthorized
+                    error:
+                      type: Illuminate\Auth\AuthenticationException
+                      details: []
+                example-2:
+                  summary: Success
+                  value:
+                    data:
+                      user:
+                        id: 1
+                        email: example_user@example.com
+                        username: user
+                        full_name: Microservice User
+                      token:
+                        access_token: >-
+                          eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vYXV0aGVudGljYXRpb24vYXBpL2xvZ2luIiwiaWF0IjoxNzIwMDA4MDUzLCJleHAiOjE3MjAwODAwNTMsIm5iZiI6MTcyMDAwODA1MywianRpIjoiaThiUEFNVWVGSlNtRzljQyIsInN1YiI6IjEiLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.DmCf4Y9GtoqNCDPUBIT3TH3dEzT6_PQWdhNIA3lxlRg
+                        expires_at: '2024-07-04 08:00:53'
+                        issued_at: '2024-07-03 12:00:53'
+                    status: success
+                    message: User data retrieved successfully.
+  /api/logout:
+    post:
+      tags:
+        - Logout
+      summary: logout user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: ''
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{user_access_token}}
+      responses:
+        undefined:
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-0:
+                  summary: Error - Authentication API down
+                  value:
+                    status: 500
+                    source: Authentication API
+                    message: >-
+                      cURL error 6: Could not resolve host: authentication (see
+                      https://curl.haxx.se/libcurl/c/libcurl-errors.html) for
+                      http://authentication/api/login
+                    error:
+                      type: GuzzleHttp\Exception\ConnectException
+                      details:
+                        connection: 'Could not resolve host: authentication'
+                example-1:
+                  summary: Error - Unauthorized
+                  value:
+                    status: 401
+                    source: Authentication API
+                    message: Unauthorized
+                    error:
+                      type: Illuminate\Auth\AuthenticationException
+                      details: []
+                example-2:
+                  summary: Success
+                  value:
+                    - message: Successfully logged out
+  /api/verify-jwt:
+    post:
+      tags:
+        - Verify Token
+      summary: verify admin token
+      requestBody:
+        content: {}
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{admin_access_token}}
+      responses:
+        undefined:
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-0:
+                  summary: Error - Authentication API down
+                  value:
+                    status: 500
+                    source: Authentication API
+                    message: >-
+                      cURL error 6: Could not resolve host: authentication (see
+                      https://curl.haxx.se/libcurl/c/libcurl-errors.html) for
+                      http://authentication/api/login
+                    error:
+                      type: GuzzleHttp\Exception\ConnectException
+                      details:
+                        connection: 'Could not resolve host: authentication'
+                example-1:
+                  summary: Error - Wrong credentials
+                  value:
+                    status: 401
+                    source: Authentication API
+                    message: Unauthorized
+                    error:
+                      type: Illuminate\Auth\AuthenticationException
+                      details: []
+                example-2:
+                  summary: Error - Wrong token
+                  value:
+                    status: 500
+                    source: Authentication API
+                    message: Token Signature could not be verified.
+                    error:
+                      type: Tymon\JWTAuth\Exceptions\TokenInvalidException
+                      details: []
+                example-3:
+                  summary: Success
+                  value:
+                    data:
+                      id: 2
+                      email: example_admin@example.com
+                      username: admin
+                      full_name: Microservice Admin
+                      created_at: '2024-07-03 14:16:00'
+                      updated_at: '2024-07-04 20:18:51'
+                    status: success
+                    message: User data retrieved successfully.
+  /api/refresh-token:
+    post:
+      tags:
+        - Refresh Token
+      summary: refresh user token
+      requestBody:
+        content: {}
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{user_access_token}}
+      responses:
+        undefined:
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-0:
+                  summary: Error - Authentication API down
+                  value:
+                    status: 500
+                    source: Authentication API
+                    message: >-
+                      cURL error 6: Could not resolve host: authentication (see
+                      https://curl.haxx.se/libcurl/c/libcurl-errors.html) for
+                      http://authentication/api/login
+                    error:
+                      type: GuzzleHttp\Exception\ConnectException
+                      details:
+                        connection: 'Could not resolve host: authentication'
+                example-1:
+                  summary: Error - Wrong credentials
+                  value:
+                    status: 401
+                    source: Authentication API
+                    message: Unauthorized
+                    error:
+                      type: Illuminate\Auth\AuthenticationException
+                      details: []
+                example-2:
+                  summary: Success
+                  value:
+                    data:
+                      user:
+                        id: 1
+                        email: example_user@example.com
+                        username: user
+                        full_name: Microservice User
+                      token:
+                        access_token: >-
+                          eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vYXV0aGVudGljYXRpb24vYXBpL3JlZnJlc2gtdG9rZW4iLCJpYXQiOjE3MjAxMzQ4NTIsImV4cCI6MTcyMDIwNjg1MiwibmJmIjoxNzIwMTM0ODUyLCJqdGkiOiJPemdLWWdTcmNsRUgwa2l1Iiwic3ViIjoiMSIsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.9pEIlvICJsA__zbF7jTWJeEfgWiYL5RplgvaivHeU6g
+                        expires_at: '2024-07-05 19:14:12'
+                        issued_at: '2024-07-04 23:14:12'
+                    status: success
+                    message: User data retrieved successfully.
+  /api/profile:
+    get:
+      tags:
+        - Profile
+      summary: profile - user
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{user_access_token}}
+      responses:
+        undefined:
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-0:
+                  summary: Error - Expired token
+                  value:
+                    status: 500
+                    source: Authentication API
+                    message: Token has expired
+                    error:
+                      type: Tymon\JWTAuth\Exceptions\TokenExpiredException
+                      details: []
+                example-1:
+                  summary: Error - Unauthorized
+                  value:
+                    status: 401
+                    source: Authentication API
+                    message: Unauthorized
+                    error:
+                      type: Illuminate\Auth\AuthenticationException
+                      details: []
+                example-2:
+                  summary: Success
+                  value:
+                    data:
+                      user_profile_id: 1
+                      profile_id: 1
+                      email: example_user@example.com
+                      username: user
+                      full_name: Microservice User
+                      address: |-
+                        743 Ewald Ridge Apt. 074
+                        Cleoburgh, AR 31661-8486
+                      phone_number: 1-260-748-9969
+                      birthdate: '1994-01-17'
+                      profile_picture: null
+                      bio: Quia laborum aut qui ut dolores dolorem.
+                      created_at: '2024-07-03T14:15:42.000000Z'
+                      updated_at: '2024-07-03T14:15:42.000000Z'
+                      requested_from_user:
+                        id: 1
+                        email: example_user@example.com
+                        username: user
+                        full_name: Microservice User
+                        created_at: '2024-07-03T14:15:38.000000Z'
+                        updated_at: '2024-07-03T14:15:38.000000Z'
+                    status: success
+                    message: Profile data retrieved successfully.
+  /api/profile/admin:
+    get:
+      tags:
+        - Profile
+      summary: profile - admin panel AS user
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{user_access_token}}
+      responses:
+        undefined:
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-0:
+                  summary: Error - Unauthorized
+                  value:
+                    status: 401
+                    source: Authentication API
+                    message: Unauthorized
+                    error:
+                      type: Illuminate\Auth\AuthenticationException
+                      details: []
+                example-1:
+                  summary: Error - Forbidden
+                  value:
+                    status: 403
+                    source: Gateway API
+                    message: Forbidden
+                    error:
+                      type: Illuminate\Auth\Access\AuthorizationException
+                      details: []
+  /api/profile/1:
+    get:
+      tags:
+        - Profile
+      summary: profile 1 AS user
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{user_access_token}}
+      responses:
+        undefined:
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-0:
+                  summary: Error - Unauthorized
+                  value:
+                    status: 401
+                    source: Authentication API
+                    message: Unauthorized
+                    error:
+                      type: Illuminate\Auth\AuthenticationException
+                      details: []
+                example-1:
+                  summary: Success
+                  value:
+                    data:
+                      user_profile_id: 1
+                      profile_id: 1
+                      email: example_user@example.com
+                      username: user
+                      full_name: Microservice User
+                      address: |-
+                        743 Ewald Ridge Apt. 074
+                        Cleoburgh, AR 31661-8486
+                      phone_number: 1-260-748-9969
+                      birthdate: '1994-01-17'
+                      profile_picture: null
+                      bio: Quia laborum aut qui ut dolores dolorem.
+                      created_at: '2024-07-03T14:15:42.000000Z'
+                      updated_at: '2024-07-03T14:15:42.000000Z'
+                      requested_from_user:
+                        id: 1
+                        email: example_user@example.com
+                        username: user
+                        full_name: Microservice User
+                        created_at: '2024-07-03T14:15:38.000000Z'
+                        updated_at: '2024-07-03T14:15:38.000000Z'
+                    status: success
+                    message: Profile data retrieved successfully.
+  /api/profile/2:
+    get:
+      tags:
+        - Profile
+      summary: profile 2 AS user
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{user_access_token}}
+      responses:
+        undefined:
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-0:
+                  summary: Error - Unauthorized
+                  value:
+                    status: 401
+                    source: Authentication API
+                    message: Unauthorized
+                    error:
+                      type: Illuminate\Auth\AuthenticationException
+                      details: []
+                example-1:
+                  summary: Error - Forbidden
+                  value:
+                    status: 403
+                    source: Gateway API
+                    message: Forbidden
+                    error:
+                      type: Illuminate\Auth\Access\AuthorizationException
+                      details: []
+  /api/register:
+    post:
+      tags:
+        - Register
+      summary: register user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                username: user
+                full_name: Microservice User
+                email: example_user@example.com
+                password: 12345678erA!
+                password_confirmation: 12345678erA!
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        undefined:
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-0:
+                  summary: Error - Authentication API down
+                  value:
+                    status: 500
+                    source: Authentication API
+                    message: >-
+                      cURL error 6: Could not resolve host: authentication (see
+                      https://curl.haxx.se/libcurl/c/libcurl-errors.html) for
+                      http://authentication/api/register
+                    error:
+                      type: GuzzleHttp\Exception\ConnectException
+                      details:
+                        connection: 'Could not resolve host: authentication'
+                example-1:
+                  summary: Error - Email taken
+                  value:
+                    status: 422
+                    source: Authentication API
+                    message: The email has already been taken.
+                    error:
+                      type: Illuminate\Validation\ValidationException
+                      details:
+                        email:
+                          - The email has already been taken.
+                example-2:
+                  summary: Success
+                  value:
+                    data:
+                      id: 1
+                      email: example_user@example.com
+                      username: user
+                      full_name: Microservice User
+                      created_at: '2024-07-03 11:36:46'
+                      updated_at: '2024-07-03 11:36:46'
+                    status: success
+                    message: User data retrieved successfully.
+  /api/reset-password:
+    post:
+      tags:
+        - Password
+      summary: reset password user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                current_password: 12345678erA!
+                password: 12345678erA!
+                password_confirmation: 12345678erA!
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{user_access_token}}
+      responses:
+        undefined:
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-0:
+                  summary: Error - Authentication API down
+                  value:
+                    status: 500
+                    source: Authentication API
+                    message: >-
+                      cURL error 6: Could not resolve host: authentication (see
+                      https://curl.haxx.se/libcurl/c/libcurl-errors.html) for
+                      http://authentication/api/register
+                    error:
+                      type: GuzzleHttp\Exception\ConnectException
+                      details:
+                        connection: 'Could not resolve host: authentication'
+                example-1:
+                  summary: Error - Wrong password
+                  value:
+                    status: 401
+                    source: Authentication API
+                    message: Wrong current password
+                    error:
+                      type: Illuminate\Auth\AuthenticationException
+                      details: []
+                example-2:
+                  summary: Error - Passwords not match
+                  value:
+                    status: 422
+                    source: Gateway API
+                    message: >-
+                      The password field confirmation does not match. (and 1
+                      more error)
+                    error:
+                      type: Illuminate\Validation\ValidationException
+                      details:
+                        password:
+                          - The password field confirmation does not match.
+                          - The password field format is invalid.
+                example-3:
+                  summary: Success
+                  value:
+                    data:
+                      user:
+                        id: 2
+                        email: example_admin@example.com
+                        username: admin
+                        full_name: Microservice Admin
+                      token:
+                        access_token: >-
+                          eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vYXV0aGVudGljYXRpb24vYXBpL3Jlc2V0LXBhc3N3b3JkIiwiaWF0IjoxNzIwMTA0NTYxLCJleHAiOjE3MjAxNzY1NjEsIm5iZiI6MTcyMDEwNDU2MSwianRpIjoiaFVsdk5OMThaYzZxREJ6TSIsInN1YiI6IjIiLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.7HeJd3osmmHQmCi8CYAs5D2Oe2iXGpmPxVeoKcU7eQY
+                        expires_at: '2024-07-05 10:49:21'
+                        issued_at: '2024-07-04 14:49:21'
+                    status: success
+                    message: User data retrieved successfully.
+  /api/password-recovery:
+    post:
+      tags:
+        - Password
+      summary: password recovery request
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                email: example_admin@example.com
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        undefined:
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-0:
+                  summary: Success
+                  value:
+                    status: success
+                    message: Password recovery email is sent.
+                example-1:
+                  summary: Success - Development
+                  value:
+                    data:
+                      token: >-
+                        FUzi65TVC7CaMFAE8d8laN08n7QIaSLLMrKuDUHcryplWhNA3weNHuoDetKZ
+                    status: success
+                    message: Recovery token successfully generated.
+  /api/reset-password-token:
+    post:
+      tags:
+        - Password
+      summary: password recovery - reset with token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                email: example_admin@example.com
+                reset_token: '{{reset_token}}'
+                password: 12345678erA!
+                password_confirmation: 12345678erA!
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        undefined:
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: application/json
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                status: success
+                message: Password recovery is successful.
+  /api/authorization/check-email-header:
+    post:
+      tags:
+        - gateway-proxy-to-services
+      summary: authorization-test-user-from-token-and-activity
+      requestBody:
+        content: {}
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{admin_access_token}}
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/authentication/check-email-header:
+    post:
+      tags:
+        - gateway-proxy-to-services
+      summary: authentication-test-user-from-token-and-activity-authentication
+      requestBody:
+        content: {}
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{admin_access_token}}
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
