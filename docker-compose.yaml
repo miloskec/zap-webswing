@@ -10,7 +10,6 @@ services:
       - ./zap:/zap/wrk/:rw   # Persist ZAP state
       - ./microservices-openapi300.yaml:/zap/wrk/microservices-openapi300.yaml
       - ./MicroServices.postman_collection.json:/zap/wrk/MicroServices.postman_collection.json
-      - ./LaraSecure.postman_collection.json:/zap/wrk/LaraSecure.postman_collection.json
     environment:
       ZAP_WEBSWING_PORT: 8080         # Match exposed port
       ZAP_WEBSWING_HOST: 0.0.0.0      # Accept all incoming connections
